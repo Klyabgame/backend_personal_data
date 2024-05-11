@@ -15,4 +15,8 @@ export const envs = {
   
   WEBSERVICE_URL:get('WEBSERVICE_URL').required().asString(),
 
+  CLOUD_NAME:get('CLOUD_NAME').required().asString(),
+  API_KEY:get('API_KEY').required().asString(),
+  API_SECRET:get('API_SECRET').required().asString(),
+
 }

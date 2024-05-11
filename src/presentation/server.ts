@@ -1,6 +1,7 @@
 import express, { Router } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import fileUpload from 'express-fileupload';
 
 
 interface Options{
@@ -31,7 +32,9 @@ export class Server{
         this.app.use(cookieParser());
         this.app.use( express.json() ); // raw
         this.app.use( express.urlencoded({ extended: true }) );
-        
+        this.app.use(fileUpload({
+            limits: { fileSize: 50 * 1024 * 1024 },
+          }));
 
         //Routes
         this.app.use(this.routes);

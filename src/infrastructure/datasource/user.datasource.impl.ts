@@ -1,4 +1,4 @@
-import { bcryptAdapter, envs, jwtAdapter, prisma } from "../../data";
+import { bcryptAdapter, CloudinaryServer, envs, jwtAdapter, prisma } from "../../data";
 import { CustomError, LoginUserDto } from "../../domain";
 import { UserDatasource } from "../../domain/datasources/user.datasource";
 import { CreateUserDto } from "../../domain/dtos/user/create-user.dto";
@@ -31,14 +31,23 @@ export class UserDatasourceImpl implements UserDatasource{
                 correo:createUserDto.correo
             }
         })   
-
         if(existEmail) throw CustomError.badRequest('el email ya existe');
+
         const hashedPasword=bcryptAdapter.hash(createUserDto.password);
+
+        console.log(CloudinaryServer().uploader.upload);
+        
+
+        const foto_url_Default='https://res.cloudinary.com/dt86tk7ed/image/upload/v1715448290/PERSONAL-DATA-BACKEND/kn9krio5avobvcz6sr1m.jpg';
         await this.sendEmailValidationLink(createUserDto.correo);
-        try {    
+        try {
+            const createUserDtoAddImage={
+                ...createUserDto,
+                foto_url: (!createUserDto.foto_url)? foto_url_Default:createUserDto.foto_url
+            }
             const user=await prisma.tb_login.create({
                 data:{
-                    ...createUserDto,
+                    ...createUserDtoAddImage,
                     password:hashedPasword
                 }
             });
