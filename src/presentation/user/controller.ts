@@ -3,7 +3,9 @@ import { CreateUserDto, CustomError, LoginUserDto, UserRepository } from "../../
 import { CreateUser } from "../../domain/use-cases/user/create-user";
 import { UUID, bcryptAdapter, jwtAdapter, prisma } from "../../data";
 import { LoginUser } from "../../domain/use-cases/user/login-user";
-import { maxAgeHour, validateEmailData, validateUserForToken } from "../../helper";
+import { imageSettings, maxAgeHour, validateEmailData, validateUserForToken } from "../../helper";
+import {UploadedFile} from 'express-fileupload';
+import { imageType } from "../../config";
 
 export class UserController {
 
@@ -74,14 +76,27 @@ export class UserController {
 
     public registerUser(req:Request, res:Response){
 
+        const foto= req.files?.foto_url as UploadedFile;
+        if (!foto) return res.status(400).json({error:'error al subir la foto'})
+         //EVALUAR EL TIPO DE ARCHIVO QUE SEA JPG, PNG, GIF 
+        const validateType=imageSettings.validateTypeMime(foto);
+        if(!validateType) return res.status(400).json({error:'Los tipos de archivo aceptados son jpg,png,gif y jpeg'});
+         //CAMBIAR EL NOMBRE DEL ARCHIVO 
+        const newImage=imageSettings.EditName(foto);
+            
+
         const [error,createUserDto]= CreateUserDto.create({
             ...req.body,
-            id_login:UUID()
+            id_login:UUID(),
+            foto_url:newImage
             
         });
         if(error) res.status(400).json(error);
 
+        console.log(createUserDto);
         
+
+        /* 
         
         new CreateUser(this.userRepository)
         .execute(createUserDto!)
@@ -94,7 +109,7 @@ export class UserController {
                 })
             });
         })
-        .catch(error=> this.handleError(error,res));
+        .catch(error=> this.handleError(error,res)); */
         
     }
 
