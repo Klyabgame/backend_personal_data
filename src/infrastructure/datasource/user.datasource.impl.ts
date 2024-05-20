@@ -35,19 +35,11 @@ export class UserDatasourceImpl implements UserDatasource{
 
         const hashedPasword=bcryptAdapter.hash(createUserDto.password);
 
-        console.log(CloudinaryServer().uploader.upload);
-        
-
-        const foto_url_Default='https://res.cloudinary.com/dt86tk7ed/image/upload/v1715448290/PERSONAL-DATA-BACKEND/kn9krio5avobvcz6sr1m.jpg';
         await this.sendEmailValidationLink(createUserDto.correo);
         try {
-            const createUserDtoAddImage={
-                ...createUserDto,
-                foto_url: (!createUserDto.foto_url)? foto_url_Default:createUserDto.foto_url
-            }
             const user=await prisma.tb_login.create({
                 data:{
-                    ...createUserDtoAddImage,
+                    ...createUserDto,
                     password:hashedPasword
                 }
             });

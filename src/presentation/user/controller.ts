@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import { CreateUserDto, CustomError, LoginUserDto, UserRepository } from "../../domain";
 import { CreateUser } from "../../domain/use-cases/user/create-user";
-import { UUID, bcryptAdapter, jwtAdapter, prisma } from "../../data";
+import { CloudinaryServer, UUID, bcryptAdapter, jwtAdapter, prisma } from "../../data";
 import { LoginUser } from "../../domain/use-cases/user/login-user";
-import { imageSettings, maxAgeHour, validateEmailData, validateUserForToken } from "../../helper";
+import { imageSettings, maxAgeHour, validateEmailData, validateUserForToken, validationsImg } from "../../helper";
 import {UploadedFile} from 'express-fileupload';
 import { imageType } from "../../config";
+import path from "path";
+import fs from 'fs'
 
 export class UserController {
 
@@ -77,39 +79,32 @@ export class UserController {
     public registerUser(req:Request, res:Response){
 
         const foto= req.files?.foto_url as UploadedFile;
-        if (!foto) return res.status(400).json({error:'error al subir la foto'})
-         //EVALUAR EL TIPO DE ARCHIVO QUE SEA JPG, PNG, GIF 
-        const validateType=imageSettings.validateTypeMime(foto);
-        if(!validateType) return res.status(400).json({error:'Los tipos de archivo aceptados son jpg,png,gif y jpeg'});
-         //CAMBIAR EL NOMBRE DEL ARCHIVO 
-        const newImage=imageSettings.EditName(foto);
-            
-
-        const [error,createUserDto]= CreateUserDto.create({
-            ...req.body,
-            id_login:UUID(),
-            foto_url:newImage
-            
-        });
-        if(error) res.status(400).json(error);
-
-        console.log(createUserDto);
+        const foto_url_Default='https://res.cloudinary.com/dt86tk7ed/image/upload/v1715448290/PERSONAL-DATA-BACKEND/kn9krio5avobvcz6sr1m.jpg';
         
-
-        /* 
-        
-        new CreateUser(this.userRepository)
-        .execute(createUserDto!)
-        .then(createUser=>{
-            jwtAdapter.generateToken(createUser.id_login).then((token)=>{
-                const {password,...rest}=createUser;
-                res.cookie('token',token,{httpOnly:true,secure:true,sameSite:'none',maxAge:maxAgeHour(2)});
-                return res.status(200).json({
-                    user:{...rest}
-                })
+        validationsImg.validationImg(foto).then((secureUrl)=>{
+            
+            const [error,createUserDto]= CreateUserDto.create({
+                ...req.body,
+                id_login:UUID(),
+                foto_url:(foto)?secureUrl:foto_url_Default,
+                
             });
-        })
-        .catch(error=> this.handleError(error,res)); */
+            if(error) res.status(400).json(error);
+
+            new CreateUser(this.userRepository)
+            .execute(createUserDto!)
+            .then(createUser=>{
+                jwtAdapter.generateToken(createUser.id_login).then((token)=>{
+                    const {password,...rest}=createUser;
+                    res.cookie('token',token,{httpOnly:true,secure:true,sameSite:'none',maxAge:maxAgeHour(2)});
+                    return res.status(200).json({
+                        user:{...rest}
+                    })
+                });
+            })
+            .catch(error=> this.handleError(error,res));
+
+        }).catch(error=> this.handleError(error,res));;
         
     }
 
