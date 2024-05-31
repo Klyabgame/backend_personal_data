@@ -7,6 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model tb_login {
+  id_login        String  @id @db.VarChar(255)
+  correo          String  @db.VarChar(35)
+  correo_validado Boolean @default(false)
+  password        String  @db.VarChar(255)
+  foto_url        String? @db.VarChar(255)
+  nombres         String  @db.VarChar(35)
+  apellidos       String  @db.VarChar(45)
+  telefono        String? @db.VarChar(10)
+}
+
 model tb_user {
   dni              String    @db.Char(8)
   id_login         String    @db.VarChar(255)
@@ -22,15 +33,4 @@ model tb_user {
 
   @@id([dni, id_login])
   @@index([id_login], map: "Reftb_login1")
-}
-
-model tb_login {
-  id_login        String  @id @db.VarChar(255)
-  correo          String  @db.VarChar(35)
-  correo_validado Boolean @default(false)
-  password        String  @db.VarChar(255)
-  foto_url        String? @db.VarChar(255)
-  nombres         String  @db.VarChar(35)
-  apellidos       String  @db.VarChar(45)
-  telefono        String? @db.VarChar(10)
 }

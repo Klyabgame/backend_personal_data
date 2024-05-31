@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
+import {UploadedFile} from 'express-fileupload';
 import { CreateUserDto, CustomError, LoginUserDto, UserRepository } from "../../domain";
 import { CreateUser } from "../../domain/use-cases/user/create-user";
-import { CloudinaryServer, UUID, bcryptAdapter, jwtAdapter, prisma } from "../../data";
+import {  UUID,  jwtAdapter,  } from "../../data";
 import { LoginUser } from "../../domain/use-cases/user/login-user";
-import { imageSettings, maxAgeHour, validateEmailData, validateUserForToken, validationsImg } from "../../helper";
-import {UploadedFile} from 'express-fileupload';
-import { imageType } from "../../config";
-import path from "path";
-import fs from 'fs'
+import { maxAgeHour, validateEmailData, validateUserForToken, validationsImg } from "../../helper";
+
+
 
 export class UserController {
 
@@ -79,17 +78,17 @@ export class UserController {
     public registerUser(req:Request, res:Response){
 
         const foto= req.files?.foto_url as UploadedFile;
-        const foto_url_Default='https://res.cloudinary.com/dt86tk7ed/image/upload/v1715448290/PERSONAL-DATA-BACKEND/kn9krio5avobvcz6sr1m.jpg';
         
         validationsImg.validationImg(foto).then((secureUrl)=>{
             
             const [error,createUserDto]= CreateUserDto.create({
                 ...req.body,
                 id_login:UUID(),
-                foto_url:(foto)?secureUrl:foto_url_Default,
+                foto_url:secureUrl
                 
             });
             if(error) res.status(400).json(error);
+            
 
             new CreateUser(this.userRepository)
             .execute(createUserDto!)

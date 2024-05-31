@@ -24,6 +24,7 @@ export class UserDatasourceImpl implements UserDatasource{
         
         return UserEntity.fromObject(user);
     }
+    
 
     async postRegisterUser(createUserDto: CreateUserDto): Promise<UserEntity> {
         const existEmail= await prisma.tb_login.findFirst({
@@ -50,6 +51,8 @@ export class UserDatasourceImpl implements UserDatasource{
             throw error;
         }
     }
+
+
 
     private async sendEmailValidationLink(email:string){
 

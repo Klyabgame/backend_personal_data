@@ -1,5 +1,6 @@
 import { prisma } from "../../data";
 import { CreateEmployeesDto, CustomError, EmployeesDatasource, EmployeesEntity, UpdateEmployeesDto } from "../../domain";
+import { validateUserForToken } from "../../helper";
 
 export class EmployeesDatasourceImpl implements EmployeesDatasource{
 
@@ -10,22 +11,40 @@ export class EmployeesDatasourceImpl implements EmployeesDatasource{
 
     }
     async getDni(dni: string): Promise<EmployeesEntity> {
-        const data=await prisma.tb_user.findFirst({
-            where:{
-                dni:dni
-            }
-        })
+        
+            const data=await prisma.tb_user.findFirst({
+                where:{
+                    dni:dni
+                }
+            })
+            if(!data) throw CustomError.badRequest(`Usuario con el dni: ${dni} no existe en la bd`);
 
-        return EmployeesEntity.fromObject({...data});
+            return EmployeesEntity.fromObject({...data});
+        
     }
     async create(createEmployeesDto: CreateEmployeesDto): Promise<EmployeesEntity> {
         
-        const datos=await prisma.tb_user.create({
-            data:createEmployeesDto!
-        });
+        const data=await prisma.tb_user.findFirst({
+            where:{
+                dni:createEmployeesDto.dni
+            }
+        })
+        if(!!data) throw CustomError.badRequest('el dni del usuario ya existe');
 
-        return EmployeesEntity.fromObject(datos);
+        try {
+            const createEmployees=await prisma.tb_user.create({
+                data:createEmployeesDto
+            })
+            return EmployeesEntity.fromObject(createEmployees);
+            
+        } catch (error) {
+            console.log(error);
+            throw CustomError.internalServer('Ocurrio un error al crear al empleado');
+            
+        }
+            
     }
+
     async update(updateEmployees:UpdateEmployeesDto): Promise<EmployeesEntity> {
         
         try {

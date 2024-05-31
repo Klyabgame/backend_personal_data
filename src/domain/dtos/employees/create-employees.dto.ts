@@ -41,8 +41,8 @@ export class CreateEmployeesDto{
             if (!fecha_nacimiento) return ['Tiene que colocar una fecha de nacimiento',undefined];
             if (!fecha_inicio) return ['Tiene que colocar una fecha de inicio laboral',undefined];
             if (!fecha_fin) return ['Tiene que colocar una fecha de fin laboral',undefined];
-            if (!dni_file) return ['Tiene que colocar el archivo pdf de tu dni',undefined];
-            if (!curriculum_file) return ['Tiene que colocar el archivo pdg de tu curriculum',undefined];
+           /*  if (!dni_file) return ['Tiene que colocar el archivo pdf de tu dni',undefined];
+            if (!curriculum_file) return ['Tiene que colocar el archivo pdg de tu curriculum',undefined]; */
 
 
 

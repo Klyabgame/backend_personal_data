@@ -63,8 +63,8 @@ export class EmployeesEntity{
             if(!fecha_nacimiento) throw 'fecha de nacimiento es requerido';
             if(!fecha_inicio) throw 'fecha de inicio es requerido';
             if(!fecha_fin) throw 'fecha de fin es requerido';
-            if(!dni_file) throw 'pdf del dni es requerido';
-            if(!curriculum_file) throw 'curriculum pdf es requerido';
+            /* if(!dni_file) throw 'pdf del dni es requerido';
+            if(!curriculum_file) throw 'curriculum pdf es requerido'; */
 
             return new EmployeesEntity(
                 dni,

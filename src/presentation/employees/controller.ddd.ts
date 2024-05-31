@@ -60,6 +60,10 @@ export class EmployeesController{
 
     
     async postEmployees(req:Request, res:Response){
+
+        const algo=req.files;
+        console.log(algo);
+        
         
         try {
             const [error,createEmployeesDto]=CreateEmployeesDto.create(req.body);

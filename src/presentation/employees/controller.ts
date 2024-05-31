@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
-import { CreateEmployees, DeleteEmployees, EmployeesRepository, GetDniEmployees, GetFullEmployees, UpdateEmployees } from "../../domain";
+import { CreateEmployees, CustomError, DeleteEmployees, EmployeesRepository, GetDniEmployees, GetFullEmployees, UpdateEmployees } from "../../domain";
 import { CreateEmployeesDto, UpdateEmployeesDto } from "../../domain/dtos";
+import fileUpload, { UploadedFile } from "express-fileupload";
+import { validateUserForToken, validationsImg } from "../../helper";
 
 
 
@@ -17,7 +19,15 @@ export class EmployeesController{
         this.deleteEmployees=this.deleteEmployees.bind(this);
     }
 
-    
+    private handleError=(error:unknown, res:Response)=>{
+        if (error instanceof CustomError) {
+            return res.status(error.statusCode).json({error:error.message});
+        }
+
+        console.log(`${error}`);
+        return res.status(500).json({error:'Internal server Error'});
+        
+    }
     
 
     public  getEmployees(req:Request,res:Response ){
@@ -43,30 +53,51 @@ export class EmployeesController{
 
     public getEmployeesOne(req:Request, res:Response){
         
-            const dni=req.params.dni;
+            const dni:number=+req.params.dni;
+            if(Number.isNaN(dni)) return res.status(400).json({error:'El dni no puede tener letras o caracteres especiales'});
+            if(dni.toString().length<8 || dni.toString().length>8) return res.status(400).json({error:'El dni tiene que tener 8 digitos'});
+
             new GetDniEmployees(this.employeesRepository)
-            .execute(dni)
+            .execute(dni.toString())
             .then(employees=>res.status(200).json({
                 employees:employees
             }))
-            .catch(error=> res.status(400).json(error));
+            .catch(error=> this.handleError(error,res));
     }
 
     
     postEmployees(req:Request, res:Response){
         
-            const [error,createEmployeesDto]=CreateEmployeesDto.create(req.body);
+        const EmployeesImg=req.files 
+         
+        validationsImg.validationImgPlus(
+            {
+                dni_file:(EmployeesImg)?EmployeesImg.dni_file:null,
+                curriculum_file:(EmployeesImg)?EmployeesImg.curriculum_file:null
+            }).then((secureUrl)=>{
+            
+            const [error,createEmployeesDto]=CreateEmployeesDto.create({
+                ...req.body,
+                dni_file:secureUrl![0],
+                curriculum_file:secureUrl![1],
+                id_login:req.user
+            });
             if(error) return res.status(400).json({error});
 
+            
+            
             new CreateEmployees(this.employeesRepository)
             .execute(createEmployeesDto!)
-            .then(employeesCreate=>res.status(200).json({
-                employees:employeesCreate
-            }))
-            .catch(error=> res.status(400).json(error));
+            .then(employeesCreate=>{
+                res.status(200).json({employees:employeesCreate})
+            })
+            .catch(error=> this.handleError(error,res));
+            
+        }).catch(error=>this.handleError(error,res))
+        
+        
+            
     }
-
-
 
 
     updateEmployees(req:Request, res:Response){
